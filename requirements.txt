@@ -1,4 +1,7 @@
-#numpy
-#tensorflow
+numpy
+tensorflow
 gymnasium[classic-control,box2d]
-matplotlib 
+matplotlib
+wandb
+absl-py
+dm-sonnet

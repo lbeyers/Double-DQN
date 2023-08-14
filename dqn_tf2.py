@@ -22,7 +22,7 @@ class ReplayBuffer():
 		self.new_state_memory[index] = state_
 		self.reward_memory[index] = reward
 		self.action_memory[index] = action
-		self.terminal_memory[index] = 1 - int(done)
+		self.terminal_memory[index] = int(done)
 		self.mem_cntr += 1
 		
 	def sample_buffer(self, batch_size):
@@ -79,14 +79,17 @@ class Agent():
 		
 	def learn(self):
 		if self.memory.mem_cntr < self.batch_size:
-			return
+			return {}
+		
 		states, actions, rewards, states_, dones = \
 			self.memory.sample_buffer(self.batch_size)
 			
-		self.train_step(states, actions, rewards, states_, dones)
+		logs = self.train_step(states, actions, rewards, states_, dones)
 	
 		self.epsilon = self.epsilon - self.eps_dec if self.epsilon > \
 			self.eps_min else self.eps_min
+		
+		return logs
 
 	@tf.function
 	def train_step(self, states, actions, rewards, states_, dones):
@@ -113,6 +116,8 @@ class Agent():
 		variables = self.q_eval.trainable_variables
 		gradients = tape.gradient(loss, variables)
 		self.optimizer.apply(gradients, variables)
+
+		return {"loss": loss, "mean q": tf.reduce_mean(q_taken)}
 			
 	def save_model(self):
 		self.q_eval.save(self.model_file)

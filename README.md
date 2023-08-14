@@ -1,7 +1,1 @@
-# Double-DQN
-# Double-DQN
-# Double-DQN
-# Double-DQN
-# Double-DQN
-# Double-DQN
-# Double-DQN
+# MSc Project
