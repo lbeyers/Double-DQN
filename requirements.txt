@@ -1,0 +1,4 @@
+#numpy
+#tensorflow
+gymnasium[classic-control,box2d]
+matplotlib 
