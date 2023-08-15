@@ -37,8 +37,7 @@ class GymWrapper():
         for agent_id in range(self.n_agents):
             avail_actions = self.smac_env.get_avail_agent_actions(agent_id)
             avail_acts.append(avail_actions)
-     
-
+        
         #claude code
         superact_legls = []
         for superact in self.superact_arr:

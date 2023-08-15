@@ -6,6 +6,7 @@ multiagent_mujoco/
 env_logs/
 results/
 .vscode/
+StarCraftII/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

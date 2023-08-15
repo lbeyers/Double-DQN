@@ -5,7 +5,7 @@ import sonnet as snt
 #from tensorflow.keras.saving import load_model
 
 class ReplayBuffer():
-	def __init__(self, max_size, input_dims):
+	def __init__(self, max_size, input_dims,action_space_size):
 		self.mem_size = max_size
 		self.mem_cntr = 0
 		
@@ -15,14 +15,16 @@ class ReplayBuffer():
 		self.action_memory = np.zeros(self.mem_size, dtype=np.int32)
 		self.reward_memory = np.zeros(self.mem_size, dtype=np.float32)
 		self.terminal_memory = np.zeros(self.mem_size, dtype = np.int32)
+		self.avail_action_memory = np.zeros((self.mem_size,action_space_size),dtype=bool)
 		
-	def store_transition(self,state,action,reward,state_, done):
+	def store_transition(self,state,action,reward,state_,done,avail_acts):
 		index = self.mem_cntr % self.mem_size
 		self.state_memory[index] = state
 		self.new_state_memory[index] = state_
 		self.reward_memory[index] = reward
 		self.action_memory[index] = action
-		self.terminal_memory[index] = 1 - int(done)
+		self.terminal_memory[index] = int(done)
+		self.avail_action_memory[index] = np.array(avail_acts)
 		self.mem_cntr += 1
 		
 	def sample_buffer(self, batch_size):
@@ -34,8 +36,9 @@ class ReplayBuffer():
 		rewards = self.reward_memory[batch]
 		actions = self.action_memory[batch]
 		terminal = self.terminal_memory[batch]
+		avail_acts = self.avail_action_memory[batch]
 		
-		return states, actions, rewards, states_, terminal
+		return states, actions, rewards, states_, terminal, avail_acts
 		
 def build_dqn(n_actions, fc1_dims, fc2_dims):
 	model = snt.Sequential([
@@ -58,7 +61,7 @@ class Agent():
 		self.eps_min = epsilon_end
 		self.batch_size = batch_size
 		self.model_file = fname
-		self.memory = ReplayBuffer(mem_size, input_dims)
+		self.memory = ReplayBuffer(mem_size, input_dims,n_actions)
 		self.q_online = build_dqn(n_actions,256,256)
 		self.q_target = build_dqn(n_actions,256,256)
 		self.optimizer = snt.optimizers.RMSProp(learning_rate=lr)
@@ -74,8 +77,8 @@ class Agent():
 		for source, dest in zip(online_variables, target_variables):
 			dest.assign(source)
 		
-	def store_transition(self, state, action, reward, new_state, done):
-		self.memory.store_transition(state, action, reward, new_state, done)
+	def store_transition(self, state, action, reward, new_state, done, avail_acts):
+		self.memory.store_transition(state, action, reward, new_state, done, avail_acts)
 		
 	def choose_action(self, observation):
 		if np.random.random() < self.epsilon:
@@ -99,24 +102,27 @@ class Agent():
 			action_vals = tf.reshape(self.q_online.__call__(state),[-1])
 
 			# http://seanlaw.github.io/2015/09/10/numpy-argmin-with-a-condition/
-			subset_idx = np.argmin(action_vals[available_acts])
+			subset_idx = np.argmax(action_vals[available_acts])
 			action = np.arange(action_vals.shape[0])[available_acts][subset_idx]
 			
 		return action
 		
 	def learn(self):
 		if self.memory.mem_cntr < self.batch_size:
-			return
-		states, actions, rewards, states_, dones = \
+			return {}
+		states, actions, rewards, states_, dones, avail_acts = \
 			self.memory.sample_buffer(self.batch_size)
 			
-		self.train_step(states, actions, rewards, states_, dones)
+		logs = self.train_step(states, actions, rewards, states_, dones, avail_acts)
 	
 		self.epsilon = self.epsilon - self.eps_dec if self.epsilon > \
 			self.eps_min else self.eps_min
+		
+		return logs
+	
 
 	@tf.function
-	def train_step(self, states, actions, rewards, states_, dones):
+	def train_step(self, states, actions, rewards, states_, dones, avail_acts):
 		dones = tf.cast(dones, dtype="float32")
 
 		# for getting the values
@@ -125,7 +131,8 @@ class Agent():
 		q_online_next = self.q_online(states_)
 		
 		# choose action using online values
-		target_actions = tf.math.argmax(q_online_next, axis=1)
+		q_next = tf.where(avail_acts, q_online_next,-1e10)
+		target_actions = tf.math.argmax(q_next,axis=1)
 
 		# grab static values for winning actions
 		q_target = tf.gather(q_target_next,target_actions,batch_dims=1)
@@ -147,6 +154,8 @@ class Agent():
 		variables = self.q_online.trainable_variables
 		gradients = tape.gradient(loss, variables)
 		self.optimizer.apply(gradients, variables)
+
+		return {"loss": loss, "mean q": tf.reduce_mean(q_taken)}
 			
 	def save_model(self):
 		self.q_online.save(self.model_file)
