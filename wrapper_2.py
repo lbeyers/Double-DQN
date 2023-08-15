@@ -69,7 +69,6 @@ class GymWrapper():
         return super_obs, reward, terminated, placeholder, available_actions
 
     def reset(self):
-        #self.smac_env.seed(seed)
         self.smac_env.reset()
 
         obs_list = self.smac_env.get_obs()
@@ -79,8 +78,3 @@ class GymWrapper():
 
         return super_obs, available_actions
 
-    def action_to_multiact(self,action):
-        multiact = []
-        for agent_id in range(self.n_agents):
-            action
-        return multiact

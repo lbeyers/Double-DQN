@@ -41,15 +41,13 @@ def main(_):
     while not tardy:
         done=False
         score=0
-        episode_seed = random.randint(0,1000000000)
+        #episode_seed = random.randint(0,1000000000)
         #seed set at init
         observation, available_actions = env.reset()
 
         game_length = 0
         procrastinating = False
         
-        # to store, convert to unique number
-        # obs_for_storage = hash(tuple(observation[0].flatten()))
         while not (done or tardy or procrastinating):
             
             action = agent.choose_action(observation,available_actions)
@@ -58,11 +56,11 @@ def main(_):
             score += reward
 
             done = terminated or truncated
-            #obs__for_storage = hash(tuple(observation_[0].flatten()))
+            
             agent.store_transition(observation, action, reward, \
                 observation_, done, available_actions)
             observation = observation_
-            # obs_for_storage = obs__for_storage
+            
             train_logs = agent.learn()
 
             timesteps+=1
