@@ -102,8 +102,13 @@ class Agent():
 			action_vals = tf.reshape(self.q_online.__call__(state),[-1])
 
 			# http://seanlaw.github.io/2015/09/10/numpy-argmin-with-a-condition/
-			subset_idx = np.argmax(action_vals[available_acts])
-			action = np.arange(action_vals.shape[0])[available_acts][subset_idx]
+
+			q_next = np.where(available_acts, action_vals,-1e10)
+			action = np.argmax(q_next)
+
+
+			#subset_idx = np.argmax(action_vals[available_acts])
+			#action = np.arange(action_vals.shape[0])[available_acts][subset_idx]
 			
 		return action
 		
@@ -121,7 +126,7 @@ class Agent():
 		return logs
 	
 
-	@tf.function
+	#@tf.function
 	def train_step(self, states, actions, rewards, states_, dones, avail_acts):
 		dones = tf.cast(dones, dtype="float32")
 
@@ -129,6 +134,11 @@ class Agent():
 		q_target_next = self.q_target(states_)
 		# for ranking the actions
 		q_online_next = self.q_online(states_)
+
+		#valid_vals = tf.ragged.boolean_mask(q_online_next,list(avail_acts)) #make .to_list()
+		#subset_idx = tf.math.argmax(valid_vals,axis=1)
+		#batch_actions = tf.repeat([self.action_space],repeats=self.batch_size)
+		#target_actions = tf.ragged.boolean_mask(batch_actions,list(avail_acts))[subset_idx]
 		
 		# choose action using online values
 		q_next = tf.where(avail_acts, q_online_next,-1e10)

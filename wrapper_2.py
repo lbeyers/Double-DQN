@@ -84,33 +84,3 @@ class GymWrapper():
         for agent_id in range(self.n_agents):
             action
         return multiact
-
-
-## ACTIONS
-# agent1 = [0,1]
-# agent2 = [0,1]
-# agent3 = [0,1]
-
-# for agent in agents:
-
-# SuperAgent = [00, 01, 10, 11]
-
-# SuperAgent = [0,1,2,3]
-
-# 0 -> 00
-# 1 -> 01
-
-
-# OBSERVATIONS
-
-# agent1 [0,0,0]
-# agent2 [0,0,0]
-
-# superObs = [0,0,0,0,0,0]
-
-## LEGALS
-#agent1 = [0,1,2]
-#agent_legals = [1,1,0]
-
-#agent2 = [0,1,2]
-#agent_legals = [0,1,1]
