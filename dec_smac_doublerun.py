@@ -65,6 +65,7 @@ def main(_):
         obs_list = env.get_obs()
         
         while not (done or tardy):
+            timesteps+=1
             actions = []
             for agent_id,agent in enumerate(agent_list):
                 avail_actions = env.get_avail_agent_actions(agent_id)
@@ -79,7 +80,7 @@ def main(_):
 
             # store all transitions and learn
             for agent_id,agent in enumerate(agent_list):
-                timesteps+=1
+                
 
                 avail_actions = env.get_avail_agent_actions(agent_id)
                 agent.store_transition(obs_list[agent_id], actions[agent_id], reward, \
