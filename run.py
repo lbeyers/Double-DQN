@@ -37,19 +37,19 @@ def main(_):
     max_timesteps = 1_000_000
     i = 0   #number of episodes
     tardy = False
+    stop_early = False
 
-    while not tardy:
+    while not (tardy or stop_early):
         done=False
         score=0
         episode_seed = random.randint(0,10000000)
         observation, info = env.reset(seed=episode_seed)
 
         game_length = 0
-        procrastinating = False
         
         # to store, convert to unique number
         # obs_for_storage = hash(tuple(observation[0].flatten()))
-        while not (done or tardy or procrastinating):
+        while not (done or tardy):
             action = agent.choose_action(observation)
             
             observation_, reward, terminated, truncated, info = env.step(action)
@@ -69,10 +69,7 @@ def main(_):
             if timesteps>=max_timesteps:
                 tardy=True
 
-            # # the lunar lander tries to stay up high - wasted computation
             game_length +=1
-            # if game_length >= 2000:
-            #     procrastinating = True
 
             if timesteps % 100 == 0:
                 logs = {
@@ -98,6 +95,10 @@ def main(_):
 
         if i % 25 == 0:
             print(f"episode {i}")
+
+        # implement earlystopping to prevent catastrophic forgetting
+        if i>100 and min(scores[-100:])>200:
+            stop_early = True
 
 
 if __name__ == "__main__":
