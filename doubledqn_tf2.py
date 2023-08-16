@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 import sonnet as snt
-from tensorflow.keras.saving import load_model
+#from tensorflow.keras.saving import load_model
 
 class ReplayBuffer():
 	def __init__(self, max_size, input_dims):
@@ -65,14 +65,11 @@ class Agent():
 
 	# update target network every now and again
 	def update_target_network(self):
-		# https://github.com/deepmind/sonnet/issues?page=1&q=is%3Aissue+is%3Aopen
-		tf.saved_model.save(self.q_online,self.model_file)
-		self.q_target = tf.saved_model.load(self.model_file)
 
-		# online_variables = self.q_online.variables
-		# target_variables = self.q_target.variables
-		# for source, dest in zip(online_variables, target_variables):
-		# 	dest.assign(source)
+		online_variables = self.q_online.variables
+		target_variables = self.q_target.variables
+		for source, dest in zip(online_variables, target_variables):
+			dest.assign(source)
 		
 	def store_transition(self, state, action, reward, new_state, done):
 		self.memory.store_transition(state, action, reward, new_state, done)
@@ -95,7 +92,6 @@ class Agent():
 		states, actions, rewards, states_, dones = \
 			self.memory.sample_buffer(self.batch_size)
 			
-		self.train_step(states, actions, rewards, states_, dones)
 		logs = self.train_step(states, actions, rewards, states_, dones)
 	
 		self.epsilon = self.epsilon - self.eps_dec if self.epsilon > \

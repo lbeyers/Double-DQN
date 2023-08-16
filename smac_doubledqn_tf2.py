@@ -68,9 +68,6 @@ class Agent():
 
 	# update target network every now and again
 	def update_target_network(self):
-		# https://github.com/deepmind/sonnet/issues?page=1&q=is%3Aissue+is%3Aopen
-		#tf.saved_model.save(self.q_online,self.model_file)
-		#self.q_target = tf.saved_model.load(self.model_file)
 
 		online_variables = self.q_online.variables
 		target_variables = self.q_target.variables
@@ -135,11 +132,6 @@ class Agent():
 		# for ranking the actions
 		q_online_next = self.q_online(states_)
 
-		#valid_vals = tf.ragged.boolean_mask(q_online_next,list(avail_acts)) #make .to_list()
-		#subset_idx = tf.math.argmax(valid_vals,axis=1)
-		#batch_actions = tf.repeat([self.action_space],repeats=self.batch_size)
-		#target_actions = tf.ragged.boolean_mask(batch_actions,list(avail_acts))[subset_idx]
-		
 		# choose action using online values
 		q_next = tf.where(avail_acts, q_online_next,-1e10)
 		target_actions = tf.math.argmax(q_next,axis=1)
