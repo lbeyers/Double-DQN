@@ -50,6 +50,7 @@ def main(_):
     # storage & tracking variables - these change in the loop
     scores = []
     eps_history = []
+    wins = []
     timesteps = 0
     i = 0 
     tardy = False
@@ -73,7 +74,8 @@ def main(_):
                 actions.append(action)
             
             # reward and terminated are shared values
-            reward, terminated, _ = env.step(actions)
+            reward, terminated, info = env.step(actions)
+            won = int(info["battle_won"])
             obs_list_ = env.get_obs()
             score += reward
             done = terminated 
@@ -81,7 +83,6 @@ def main(_):
             # store all transitions and learn
             for agent_id,agent in enumerate(agent_list):
                 
-
                 avail_actions = env.get_avail_agent_actions(agent_id)
                 agent.store_transition(obs_list[agent_id], actions[agent_id], reward, \
                 obs_list_[agent_id], done, avail_actions)
@@ -109,12 +110,14 @@ def main(_):
             
         eps_history.append(agent.epsilon)
         scores.append(score)
+        wins.append(won)
         
         avg_score = np.mean(scores[-100:])
 
         logs = {'game_length': game_length,
             'episode': i ,
             'score' : score,
+            'won' : won,
             'average_score' : avg_score,
             'steps' : timesteps,
             'epsilon' : agent.epsilon}
