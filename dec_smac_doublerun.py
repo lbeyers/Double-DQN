@@ -60,6 +60,7 @@ def main(_):
         done=False
         score=0
         game_length = 0
+        won = 0
 
         # todo
         env.reset()
@@ -75,12 +76,16 @@ def main(_):
             
             # reward and terminated are shared values
             reward, terminated, info = env.step(actions)
-            won = int(info["battle_won"])
+            try:
+                won = int(info['battle_won'])
+            except:
+                won = 1
             obs_list_ = env.get_obs()
             score += reward
             done = terminated 
 
             # store all transitions and learn
+            logs = {}
             for agent_id,agent in enumerate(agent_list):
                 
                 avail_actions = env.get_avail_agent_actions(agent_id)
@@ -89,15 +94,19 @@ def main(_):
 
                 train_logs = agent.learn()
 
+                new_train_logs = {}
+                for key, value in train_logs.items():
+                    new_train_logs[f"agent_{agent_id}_{key}"] = value
+
+                logs.update({
+                        f'agent_{agent_id}_epsilon' : agent.epsilon,
+                        **new_train_logs
+                    })
+
                 if timesteps % target_update_period ==0:
                     agent.update_target_network()
-                    logs = {
-                        'agent_id' : agent_id,
-                        'steps' : timesteps,
-                        'epsilon' : agent.epsilon,
-                        **train_logs
-                    }
-                    wandb.log(logs)
+            logs["steps"] = timesteps
+            wandb.log(logs)
 
             obs_list = obs_list_
 
