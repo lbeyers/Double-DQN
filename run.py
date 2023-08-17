@@ -24,7 +24,7 @@ def main(_):
     #    "gamma":FLAGS.gamma,
     #    "seed": FLAGS.seed}
     #config = FLAGS
-    run = wandb.init()#config=config)
+    run = wandb.init(project="LunarLander")#config=config)
 
     agent = Agent(gamma=FLAGS.gamma, epsilon=1.0, lr=FLAGS.lr, \
             input_dims=env.observation_space.shape, \

@@ -21,7 +21,7 @@ def main(_):
     random.seed(FLAGS.seed)
     np.random.seed(FLAGS.seed)
 
-    doublerun = wandb.init(reinit=True)
+    doublerun = wandb.init(reinit=True,project="LunarLander")
 
     agent = Agent(gamma=FLAGS.gamma, epsilon=1.0,lr=FLAGS.lr, \
             input_dims=env.observation_space.shape, \

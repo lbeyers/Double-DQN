@@ -37,7 +37,7 @@ def main(_):
     n_actions = env_info["n_actions"]   # per agent
     obs_shape = env_info["obs_shape"]   # per agent
 
-    agent = Cohort(gamma=FLAGS.gamma, epsilon=1.0,lr=FLAGS.lr, \
+    cohort = Cohort(gamma=FLAGS.gamma, epsilon=1.0,lr=FLAGS.lr, \
         input_dims=[obs_shape], n_agents=n_agents, \
         n_actions=n_actions,mem_size=FLAGS.buffer_size,batch_size=32, \
         epsilon_end=eps_end, epsilon_dec=FLAGS.eps_dec)
@@ -66,7 +66,7 @@ def main(_):
             actions = []
             for agent_id in range(n_agents):
                 avail_actions = env.get_avail_agent_actions(agent_id)
-                action = agent.choose_action(obs_list[agent_id],avail_actions,agent_id)
+                action = cohort.choose_action(obs_list[agent_id],avail_actions,agent_id)
                 actions.append(action)
             
             # reward and terminated are shared values
@@ -89,18 +89,18 @@ def main(_):
 
 
 
-            agent.store_transition(np.array(obs_list), actions, reward, \
+            cohort.store_transition(np.array(obs_list), actions, reward, \
             np.array(obs_list_), done, avail_acts_ls)
 
-            train_logs = agent.learn()
+            train_logs = cohort.learn()
 
             logs = {
-                    'epsilon' : agent.epsilon,
+                    'epsilon' : cohort.epsilon,
                     **train_logs
                 }
 
             if timesteps % target_update_period ==0:
-                agent.update_target_network()
+                cohort.update_target_network()
             logs["steps"] = timesteps
             wandb.log(logs)
 
@@ -113,7 +113,7 @@ def main(_):
             game_length +=1
             
             
-        eps_history.append(agent.epsilon)
+        eps_history.append(cohort.epsilon)
         scores.append(score)
         wins.append(won)
         
@@ -125,7 +125,7 @@ def main(_):
             'won' : won,
             'average_score' : avg_score,
             'steps' : timesteps,
-            'epsilon' : agent.epsilon}
+            'epsilon' : cohort.epsilon}
         wandb.log(logs)
 
         i+=1
