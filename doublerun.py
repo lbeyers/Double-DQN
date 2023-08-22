@@ -25,35 +25,30 @@ def main(_):
 
     agent = Agent(gamma=FLAGS.gamma, epsilon=1.0,lr=FLAGS.lr, \
             input_dims=env.observation_space.shape, \
-            n_actions=env.action_space.n,mem_size=200000,batch_size=32, \
+            n_actions=env.action_space.n,mem_size=FLAGS.buffer_size,batch_size=32, \
             epsilon_end=eps_end, epsilon_dec=FLAGS.eps_dec)
     scores = []
     eps_history = []
     timesteps = 0
-    max_timesteps = 1000000
+    max_timesteps = 500000
     i = 0   #number of episodes
     tardy = False
-    target_update_period = 500
+    target_update_period = FLAGS.targ_update
 
     while not tardy:
         done=False
         score=0
-        episode_seed = random.randint(0,1000)
+        episode_seed = random.randint(0,10000000)
         observation, info = env.reset(seed=episode_seed)
 
         game_length = 0
-        procrastinating = False
-        
-        # to store, convert to unique number
-        # obs_for_storage = hash(tuple(observation[0].flatten()))
-        while not (done or tardy or procrastinating):
+        while not (done or tardy):
             action = agent.choose_action(observation)
             
             observation_, reward, terminated, truncated, info = env.step(action)
             score += reward
 
             done = terminated or truncated
-            #obs__for_storage = hash(tuple(observation_[0].flatten()))
             agent.store_transition(observation, action, reward, \
                 observation_, done)
             observation = observation_
@@ -66,8 +61,6 @@ def main(_):
 
             # the lunar lander tries to stay up high - wasted computation
             game_length +=1
-            #if game_length >= 1000:
-            #    procrastinating = True
 
             # update target network every n steps
             if timesteps % target_update_period ==0:

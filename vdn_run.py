@@ -23,7 +23,7 @@ def main(_):
     target_update_period = FLAGS.targ_update
 
     # start the wandb logger
-    run = wandb.init(reinit=True,project="VDN")
+    run = wandb.init(reinit=True,project="SMAC")
     
     random.seed(FLAGS.seed)
     np.random.seed(FLAGS.seed)

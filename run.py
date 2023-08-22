@@ -11,6 +11,7 @@ flags.DEFINE_float("lr", 3e-4, "Learning Rate")
 flags.DEFINE_float("eps_dec", 1e-5, "Decay rate of epsilon")
 flags.DEFINE_integer("seed", 42, "Random seed")
 flags.DEFINE_float("gamma", 0.99, "Gamma value for update")
+flags.DEFINE_integer("buffer_size",200000,"Size of memory")
 
 
 def main(_):
@@ -19,27 +20,21 @@ def main(_):
     random.seed(FLAGS.seed)
     np.random.seed(FLAGS.seed)
 
-    #config = {"lr": FLAGS.lr,
-    #    "eps_dec": FLAGS.eps_dec,
-    #    "gamma":FLAGS.gamma,
-    #    "seed": FLAGS.seed}
-    #config = FLAGS
-    run = wandb.init(project="LunarLander")#config=config)
+    run = wandb.init(project="LunarLander")
 
     agent = Agent(gamma=FLAGS.gamma, epsilon=1.0, lr=FLAGS.lr, \
             input_dims=env.observation_space.shape, \
-            n_actions=env.action_space.n,mem_size=200000,batch_size=32, \
+            n_actions=env.action_space.n,mem_size=FLAGS.buffer_size,batch_size=32, \
             epsilon_end=eps_end, epsilon_dec=FLAGS.eps_dec)
     
     scores = []
     eps_history = []
     timesteps = 0
-    max_timesteps = 1_000_000
+    max_timesteps = 500000
     i = 0   #number of episodes
     tardy = False
-    stop_early = False
 
-    while not (tardy or stop_early):
+    while not tardy:
         done=False
         score=0
         episode_seed = random.randint(0,10000000)
@@ -47,14 +42,11 @@ def main(_):
 
         game_length = 0
         
-        # to store, convert to unique number
-        # obs_for_storage = hash(tuple(observation[0].flatten()))
         while not (done or tardy):
             action = agent.choose_action(observation)
             
             observation_, reward, terminated, truncated, info = env.step(action)
             score += reward
-            #obs__for_storage = hash(tuple(observation_[0].flatten()))
 
             done = terminated or truncated 
 
@@ -62,7 +54,6 @@ def main(_):
                 observation_, done)
             
             observation = observation_
-            # obs_for_storage = obs__for_storage
             train_logs = agent.learn()
 
             timesteps+=1
@@ -96,13 +87,6 @@ def main(_):
         if i % 25 == 0:
             print(f"episode {i}")
 
-        # implement earlystopping to prevent catastrophic forgetting
-        if i>100 and min(scores[-100:])>200:
-            stop_early = True
-
 
 if __name__ == "__main__":
     app.run(main)
-	
-
-

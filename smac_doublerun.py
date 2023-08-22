@@ -41,8 +41,6 @@ def main(_):
     while not tardy:
         done=False
         score=0
-        #episode_seed = random.randint(0,1000000000)
-        #seed set at init
         observation, available_actions = env.reset()
 
         game_length = 0
