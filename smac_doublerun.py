@@ -17,6 +17,31 @@ flags.DEFINE_float("gamma", 0.99, "Gamma value for update")
 flags.DEFINE_integer("targ_update", 500, "Number of steps before copying network weights")
 flags.DEFINE_integer("buffer_size",200000,"Size of memory")
 
+def perform_eval(agent, env):
+    done=False
+    score=0
+    observation, available_actions = env.reset()
+    agent.epsilon=0
+
+    game_length = 0
+    
+    while not (done):
+        
+        action = agent.choose_action(observation,available_actions)
+        
+        observation_, reward, terminated, truncated, available_actions = env.step(action)
+        score += reward
+
+        done = terminated or truncated
+
+        game_length +=1
+        
+    logs = {
+        'eval_length' : game_length,
+        'eval_score' : score,
+    }
+    wandb.log(logs)
+
 
 def main(_):
     env = GymWrapper("3m", FLAGS.seed)
@@ -107,29 +132,5 @@ def main(_):
 if __name__ == "__main__":
     app.run(main)
 	
-def perform_eval(agent, env):
-    done=False
-    score=0
-    observation, available_actions = env.reset()
-    agent.epsilon=0
-
-    game_length = 0
-    
-    while not (done):
-        
-        action = agent.choose_action(observation,available_actions)
-        
-        observation_, reward, terminated, truncated, available_actions = env.step(action)
-        score += reward
-
-        done = terminated or truncated
-
-        game_length +=1
-        
-    logs = {
-        'eval_length' : game_length,
-        'eval_score' : score,
-    }
-    wandb.log(logs)
 
 
