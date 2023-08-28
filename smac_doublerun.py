@@ -7,6 +7,7 @@ import tensorflow as tf
 import wandb
 from absl import flags, app
 import random
+import copy
 
 FLAGS = flags.FLAGS
 flags.DEFINE_float("lr", 3e-4, "Learning Rate")
@@ -44,9 +45,8 @@ def main(_):
         observation, available_actions = env.reset()
 
         game_length = 0
-        procrastinating = False
         
-        while not (done or tardy or procrastinating):
+        while not (done or tardy):
             
             action = agent.choose_action(observation,available_actions)
             
@@ -92,11 +92,44 @@ def main(_):
         if i % 25 == 0:
             print(f"episode {i}")
 
+            #store the eps
+            current_eps = copy.deepcopy(agent.epsilon)
+
+            #evaluation
+            perform_eval(agent,env)
+
+            # restore the eps
+            agent.epsilon = copy.deepcopy(current_eps)
+
     env.wrap_up()
 
 
 if __name__ == "__main__":
     app.run(main)
 	
+def perform_eval(agent, env):
+    done=False
+    score=0
+    observation, available_actions = env.reset()
+    agent.epsilon=0
+
+    game_length = 0
+    
+    while not (done):
+        
+        action = agent.choose_action(observation,available_actions)
+        
+        observation_, reward, terminated, truncated, available_actions = env.step(action)
+        score += reward
+
+        done = terminated or truncated
+
+        game_length +=1
+        
+    logs = {
+        'eval_length' : game_length,
+        'eval_score' : score,
+    }
+    wandb.log(logs)
 
 
