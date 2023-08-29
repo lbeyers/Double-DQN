@@ -29,7 +29,7 @@ def perform_eval(agent, env):
         
         action = agent.choose_action(observation,available_actions)
         
-        observation_, reward, terminated, truncated, available_actions = env.step(action)
+        won, observation_, reward, terminated, truncated, available_actions = env.step(action)
         score += reward
 
         done = terminated or truncated
@@ -39,6 +39,7 @@ def perform_eval(agent, env):
     logs = {
         'eval_length' : game_length,
         'eval_score' : score,
+        'eval_won' : won
     }
     wandb.log(logs)
 
@@ -75,7 +76,7 @@ def main(_):
             
             action = agent.choose_action(observation,available_actions)
             
-            observation_, reward, terminated, truncated, available_actions = env.step(action)
+            won, observation_, reward, terminated, truncated, available_actions = env.step(action)
             score += reward
 
             done = terminated or truncated
@@ -110,6 +111,7 @@ def main(_):
         logs = {'game_length': game_length, 'episode': i ,'score' : score,
             'average_score' : avg_score,
             'steps' : timesteps,
+            'won' : won,
             'epsilon' : agent.epsilon}
         wandb.log(logs)
         i+=1

@@ -57,7 +57,11 @@ class GymWrapper():
     def step(self, action):
         # central writes down orders from tuple
         action_arr = self.superact_arr[action]
-        reward, terminated, _ = self.smac_env.step(list(action_arr))
+        reward, terminated, info = self.smac_env.step(list(action_arr))
+        try:
+            won = int(info['battle_won'])
+        except:
+            won = 1
 
         obs_list = self.smac_env.get_obs()
         super_obs = np.array(obs_list).flatten()
@@ -66,7 +70,7 @@ class GymWrapper():
 
         available_actions = self.get_legal_multiact()
 
-        return super_obs, reward, terminated, placeholder, available_actions
+        return won, super_obs, reward, terminated, placeholder, available_actions
 
     def reset(self):
         self.smac_env.reset()
