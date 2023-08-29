@@ -173,13 +173,13 @@ def main(_):
             print(f"episode {i}")
 
             #store the eps
-            current_eps = copy.deepcopy(agent.epsilon)
+            current_eps = copy.deepcopy(cohort.epsilon)
 
             #evaluation
-            perform_eval(agent,env)
+            perform_eval(cohort,env)
 
             # restore the eps
-            agent.epsilon = copy.deepcopy(current_eps)
+            cohort.epsilon = copy.deepcopy(current_eps)
 
 
 if __name__ == "__main__":
