@@ -29,7 +29,7 @@ def perform_eval(agent, env):
         
         action = agent.choose_action(observation,available_actions)
         
-        won, observation_, reward, terminated, truncated, available_actions = env.step(action)
+        won, observation, reward, terminated, truncated, available_actions = env.step(action)
         score += reward
 
         done = terminated or truncated
