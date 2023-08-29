@@ -41,7 +41,7 @@ def perform_eval(agent_list, env):
             won = int(info['battle_won'])
         except:
             won = 1
-        obs_list_ = env.get_obs()
+        obs_list = env.get_obs()
         score += reward
         done = terminated
 
