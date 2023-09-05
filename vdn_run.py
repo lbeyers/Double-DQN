@@ -1,4 +1,4 @@
-from vdn_dqn import Cohort
+from agentclasses import VDNCohort
 import numpy as np
 import tensorflow as tfs
 import wandb
@@ -77,7 +77,7 @@ def main(_):
     n_actions = env_info["n_actions"]   # per agent
     obs_shape = env_info["obs_shape"]   # per agent
 
-    cohort = Cohort(gamma=FLAGS.gamma, epsilon=1.0,lr=FLAGS.lr, \
+    cohort = VDNCohort(gamma=FLAGS.gamma, epsilon=1.0,lr=FLAGS.lr, \
         input_dims=[obs_shape], n_agents=n_agents, \
         n_actions=n_actions,mem_size=FLAGS.buffer_size,batch_size=32, \
         epsilon_end=eps_end, epsilon_dec=FLAGS.eps_dec)

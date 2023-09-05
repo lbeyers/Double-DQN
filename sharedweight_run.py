@@ -1,4 +1,4 @@
-from sharedweight_system_dqn import Cohort
+from agentclasses import Cohort
 import numpy as np
 import tensorflow as tfs
 import wandb

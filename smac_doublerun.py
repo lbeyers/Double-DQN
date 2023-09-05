@@ -1,7 +1,6 @@
-from smac_doubledqn_tf2 import Agent
-from wrapper_2 import GymWrapper
+from agentclasses import SuperAgent
+from gymwrapper import GymWrapper
 import numpy as np
-# import gymnasium as gym
 from smac.env import StarCraft2Env
 import tensorflow as tf
 import wandb
@@ -52,7 +51,7 @@ def main(_):
 
     doublerun = wandb.init(reinit=True,project="SMAC")
 
-    agent = Agent(gamma=FLAGS.gamma, epsilon=1.0,lr=FLAGS.lr, \
+    agent = SuperAgent(gamma=FLAGS.gamma, epsilon=1.0,lr=FLAGS.lr, \
             input_dims=env.obs_len, \
             n_actions=env.n_actions**env.n_agents,mem_size=FLAGS.buffer_size,batch_size=32, \
             epsilon_end=eps_end, epsilon_dec=FLAGS.eps_dec)

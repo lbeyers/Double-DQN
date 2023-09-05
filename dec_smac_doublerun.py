@@ -1,4 +1,4 @@
-from dec_smac_doubledqn import Cohort
+from agentclasses import Agent
 import numpy as np
 import tensorflow as tfs
 import wandb
@@ -81,7 +81,7 @@ def main(_):
     agent_list = []
     for agent_id in range(n_agents):
         # todo fix initialising of agents
-        agent = Cohort(gamma=FLAGS.gamma, epsilon=1.0,lr=FLAGS.lr, \
+        agent = Agent(gamma=FLAGS.gamma, epsilon=1.0,lr=FLAGS.lr, \
             input_dims=[obs_shape], \
             n_actions=n_actions,mem_size=FLAGS.buffer_size,batch_size=32, \
             epsilon_end=eps_end, epsilon_dec=FLAGS.eps_dec)
