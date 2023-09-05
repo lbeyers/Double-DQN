@@ -6,6 +6,7 @@ from absl import flags, app
 import random
 from smac.env import StarCraft2Env
 import copy
+from evals import *
 
 FLAGS = flags.FLAGS
 flags.DEFINE_float("lr", 3e-4, "Learning Rate")
@@ -14,46 +15,6 @@ flags.DEFINE_integer("seed", 42, "Random seed")
 flags.DEFINE_float("gamma", 0.99, "Gamma value for update")
 flags.DEFINE_integer("targ_update", 500, "Number of steps before copying network weights")
 flags.DEFINE_integer("buffer_size",200000,"Size of memory")
-
-
-def perform_eval(agent_list, env):
-    # storage & tracking variables - these change in the loop
-    done=False
-    score=0
-    game_length = 0
-    won = 0
-
-    # todo
-    env.reset()
-    obs_list = env.get_obs()
-    
-    while not (done):
-
-        actions = []
-        for agent_id,agent in enumerate(agent_list):
-            avail_actions = env.get_avail_agent_actions(agent_id)
-            action = agent.choose_action(obs_list[agent_id],avail_actions)
-            actions.append(action)
-        
-        # reward and terminated are shared values
-        reward, terminated, info = env.step(actions)
-        try:
-            won = int(info['battle_won'])
-        except:
-            won = 1
-        obs_list = env.get_obs()
-        score += reward
-        done = terminated
-
-        game_length +=1
-        
-    logs = {
-        'eval_length' : game_length,
-        'eval_score' : score,
-        'eval_won' : won
-    }
-    wandb.log(logs)
-
 
 def main(_):
 
@@ -181,14 +142,12 @@ def main(_):
             for a_id, agent in enumerate(agent_list):
                 agent.epsilon=0
 
-            perform_eval(agent_list,env)
+            logs = perform_dec_eval(agent_list,env)
+            wandb.log(logs)
 
             # restore epses
             for a_id, agent in enumerate(agent_list):
                 agent.epsilon=copy.deepcopy(eps_storage[a_id])
-
-
-
 
 if __name__ == "__main__":
     app.run(main)

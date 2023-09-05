@@ -6,6 +6,7 @@ from absl import flags, app
 import random
 from smac.env import StarCraft2Env
 import copy
+from evals import *
 
 FLAGS = flags.FLAGS
 flags.DEFINE_float("lr", 3e-4, "Learning Rate")
@@ -15,45 +16,6 @@ flags.DEFINE_float("gamma", 0.99, "Gamma value for update")
 flags.DEFINE_integer("targ_update", 500, "Number of steps before copying network weights")
 flags.DEFINE_integer("buffer_size",200000,"Size of memory")
 
-def perform_eval(agent, env):
-    # storage & tracking variables - these change in the loop
-    done=False
-    score=0
-    game_length = 0
-    won = 0
-
-    #
-    env.reset()
-    obs_list = env.get_obs()
-    
-    while not (done):
-
-        actions = []
-        for agent_id in range(agent.n_agents):
-            avail_actions = env.get_avail_agent_actions(agent_id)
-            action = agent.choose_action(obs_list[agent_id],avail_actions,agent_id)
-            actions.append(action)
-        
-        # reward and terminated are shared values
-        reward, terminated, info = env.step(actions)
-        try:
-            won = int(info['battle_won'])
-        except:
-            won = 1
-        obs_list = env.get_obs()
-        score += reward
-        done = terminated
-
-        game_length +=1
-        
-    logs = {
-        'eval_length' : game_length,
-        'eval_score' : score,
-        'eval_won' : won
-    }
-    wandb.log(logs)
-
-
 def main(_):
 
     # hyperparams & fixed variables
@@ -62,7 +24,7 @@ def main(_):
     target_update_period = FLAGS.targ_update
 
     # start the wandb logger
-    run = wandb.init(reinit=True,project="VDN")
+    run = wandb.init(reinit=True,project="SMAC")
     
     random.seed(FLAGS.seed)
     np.random.seed(FLAGS.seed)
@@ -76,7 +38,7 @@ def main(_):
     n_actions = env_info["n_actions"]   # per agent
     obs_shape = env_info["obs_shape"]   # per agent
 
-    agent = Cohort(gamma=FLAGS.gamma, epsilon=1.0,lr=FLAGS.lr, \
+    cohort = Cohort(gamma=FLAGS.gamma, epsilon=1.0,lr=FLAGS.lr, \
         input_dims=[obs_shape], n_agents=n_agents, \
         n_actions=n_actions,mem_size=FLAGS.buffer_size,batch_size=32, \
         epsilon_end=eps_end, epsilon_dec=FLAGS.eps_dec)
@@ -105,7 +67,7 @@ def main(_):
             actions = []
             for agent_id in range(n_agents):
                 avail_actions = env.get_avail_agent_actions(agent_id)
-                action = agent.choose_action(obs_list[agent_id],avail_actions,agent_id)
+                action = cohort.choose_action(obs_list[agent_id],avail_actions,agent_id)
                 actions.append(action)
             
             # reward and terminated are shared values
@@ -128,18 +90,18 @@ def main(_):
 
 
 
-            agent.store_transition(np.array(obs_list), actions, reward, \
+            cohort.store_transition(np.array(obs_list), actions, reward, \
             np.array(obs_list_), done, avail_acts_ls)
 
-            train_logs = agent.learn()
+            train_logs = cohort.learn()
 
             logs = {
-                    'epsilon' : agent.epsilon,
+                    'epsilon' : cohort.epsilon,
                     **train_logs
                 }
 
             if timesteps % target_update_period ==0:
-                agent.update_target_network()
+                cohort.update_target_network()
             logs["steps"] = timesteps
             wandb.log(logs)
 
@@ -152,7 +114,7 @@ def main(_):
             game_length +=1
             
             
-        eps_history.append(agent.epsilon)
+        eps_history.append(cohort.epsilon)
         scores.append(score)
         wins.append(won)
         
@@ -164,7 +126,7 @@ def main(_):
             'won' : won,
             'average_score' : avg_score,
             'steps' : timesteps,
-            'epsilon' : agent.epsilon}
+            'epsilon' : cohort.epsilon}
         wandb.log(logs)
 
         i+=1
@@ -172,18 +134,16 @@ def main(_):
             print(f"episode {i}")
 
             #store the eps
-            current_eps = copy.deepcopy(agent.epsilon)
+            current_eps = copy.deepcopy(cohort.epsilon)
 
             #evaluation
-            perform_eval(agent,env)
+            logs = perform_shared_eval(cohort,env)
+            wandb.log(logs)
 
             # restore the eps
-            agent.epsilon = copy.deepcopy(current_eps)
+            cohort.epsilon = copy.deepcopy(current_eps)
 
 
 
 if __name__ == "__main__":
     app.run(main)
-	
-
-
