@@ -16,6 +16,7 @@ flags.DEFINE_integer("seed", 42, "Random seed")
 flags.DEFINE_float("gamma", 0.99, "Gamma value for update")
 flags.DEFINE_integer("targ_update", 500, "Number of steps before copying network weights")
 flags.DEFINE_integer("buffer_size",200000,"Size of memory")
+flags.DEFINE_integer("train_period",1,"Number of steps to take in between training")
 
 def main(_):
     env = GymWrapper("3m", FLAGS.seed)
@@ -57,8 +58,9 @@ def main(_):
             agent.store_transition(observation, action, reward, \
                 observation_, done, available_actions)
             observation = observation_
-            
-            train_logs = agent.learn()
+
+            if timesteps%FLAGS.train_period==0:
+                train_logs = agent.learn()
 
             timesteps+=1
             if timesteps>=max_timesteps:

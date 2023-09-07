@@ -15,14 +15,6 @@ def build_dqn(n_actions, fc1_dims, fc2_dims):
 		snt.Linear(n_actions)
 	])
 	return model
-
-class ActionChoiceMemory():
-	def __init__(self):
-		#get tuples, store list (per action gradient thingy)
-		self.memory = {}
-
-	def store_grad(self,transition,action_grads):
-		self.memory[transition] = action_grads
 		
 #for super agent	
 class SuperAgent():
@@ -82,7 +74,7 @@ class SuperAgent():
 		
 	def learn(self):
 		if self.memory.mem_cntr < self.batch_size:
-			return {}
+			return {}, {}
 		states, actions, rewards, states_, dones, avail_acts = \
 			self.memory.sample_buffer(self.batch_size)
 			
@@ -116,10 +108,9 @@ class SuperAgent():
 
 		with tf.GradientTape(persistent=True) as tape:
 
-			states = tf.Variable(states)
-
 			q_online = self.q_online(states)
 			q_taken = tf.gather(q_online,actions,batch_dims=1)
+			#q_taken = tf.Variable(q_taken)
 
 			# mse
 			error = (target-q_taken)**2
@@ -130,9 +121,9 @@ class SuperAgent():
 		gradients = tape.gradient(loss, variables)
 		self.optimizer.apply(gradients, variables)
 
-		vog_gradients = tape.gradient(loss, states)
+		#vog_gradients = tape.gradient(loss, q_taken)
 
-		return {"loss": loss, "mean q": tf.reduce_mean(q_taken),"vog gradients": tf.reduce_mean(vog_gradients)}
+		return {"loss": loss, "mean q": tf.reduce_mean(q_taken)}#, gradients[-2]
 			
 	def save_model(self):
 		self.q_online.save(self.model_file)

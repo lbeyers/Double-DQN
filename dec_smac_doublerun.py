@@ -15,6 +15,7 @@ flags.DEFINE_integer("seed", 42, "Random seed")
 flags.DEFINE_float("gamma", 0.99, "Gamma value for update")
 flags.DEFINE_integer("targ_update", 500, "Number of steps before copying network weights")
 flags.DEFINE_integer("buffer_size",200000,"Size of memory")
+flags.DEFINE_integer("train_period",1,"Number of steps to take in between training")
 
 def main(_):
 

@@ -15,6 +15,8 @@ flags.DEFINE_integer("seed", 42, "Random seed")
 flags.DEFINE_float("gamma", 0.99, "Gamma value for update")
 flags.DEFINE_integer("targ_update", 500, "Number of steps before copying network weights")
 flags.DEFINE_integer("buffer_size",200000,"Size of memory")
+flags.DEFINE_integer("train_period",1,"Number of steps to take in between training")
+
 
 def main(_):
 
@@ -93,7 +95,8 @@ def main(_):
             cohort.store_transition(np.array(obs_list), actions, reward, \
             np.array(obs_list_), done, avail_acts_ls)
 
-            train_logs = cohort.learn()
+            if timesteps%FLAGS.train_period==0:
+                train_logs = cohort.learn()
 
             logs = {
                     'epsilon' : cohort.epsilon,
