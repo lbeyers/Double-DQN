@@ -4,7 +4,6 @@ from tensorflow import keras
 import sonnet as snt
 from replaybuffers import *
 
-
 #for all
 def build_dqn(n_actions, fc1_dims, fc2_dims):
 	model = snt.Sequential([
