@@ -45,6 +45,8 @@ class SuperAgent():
 		self.memory.store_transition(state, action, reward, new_state, done, avail_acts)
 		
 	def choose_action(self, observation):
+		self.epsilon = self.epsilon - self.eps_dec if self.epsilon > \
+			self.eps_min else self.eps_min
 		if np.random.random() < self.epsilon:
 			action = np.random.choice(self.action_space)
 		else:
@@ -57,6 +59,8 @@ class SuperAgent():
 		return action
 	
 	def choose_action(self, observation, available_acts):
+		self.epsilon = self.epsilon - self.eps_dec if self.epsilon > \
+			self.eps_min else self.eps_min
 		available_acts = np.array(available_acts).astype(bool)
 		if np.random.random() < self.epsilon:
 			action = np.random.choice(np.array(self.action_space)[available_acts])
@@ -74,19 +78,19 @@ class SuperAgent():
 		
 	def learn(self):
 		if self.memory.mem_cntr < self.batch_size:
-			return {}, {}
+			return {}
 		states, actions, rewards, states_, dones, avail_acts = \
 			self.memory.sample_buffer(self.batch_size)
 			
 		logs = self.train_step(states, actions, rewards, states_, dones, avail_acts)
 	
-		self.epsilon = self.epsilon - self.eps_dec if self.epsilon > \
-			self.eps_min else self.eps_min
+		#self.epsilon = self.epsilon - self.eps_dec if self.epsilon > \
+		#	self.eps_min else self.eps_min
 		
 		return logs
 	
 
-	#@tf.function
+	@tf.function
 	def train_step(self, states, actions, rewards, states_, dones, avail_acts):
 		dones = tf.cast(dones, dtype="float32")
 
@@ -139,6 +143,8 @@ class Agent(SuperAgent):
 			mem_size, fname)
 		
 	def choose_action(self, observation, avail_acts_oh):
+		self.epsilon = self.epsilon - self.eps_dec if self.epsilon > \
+			self.eps_min else self.eps_min
 		avail_acts = np.nonzero(avail_acts_oh)[0]
 		if np.random.random() < self.epsilon:
 			action = np.random.choice(avail_acts)
@@ -173,6 +179,8 @@ class Cohort(SuperAgent):
 		self.optimizer = snt.optimizers.RMSProp(learning_rate=lr)
 		
 	def choose_action(self, observation,avail_acts_oh, agent_id):
+		self.epsilon = self.epsilon - self.eps_dec if self.epsilon > \
+			self.eps_min else self.eps_min
 		avail_acts = np.nonzero(avail_acts_oh)[0]
 		if np.random.random() < self.epsilon:
 			action = np.random.choice(avail_acts)
