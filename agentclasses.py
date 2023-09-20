@@ -179,8 +179,9 @@ class Cohort(SuperAgent):
 		self.optimizer = snt.optimizers.RMSProp(learning_rate=lr)
 		
 	def choose_action(self, observation,avail_acts_oh, agent_id):
-		self.epsilon = self.epsilon - self.eps_dec if self.epsilon > \
-			self.eps_min else self.eps_min
+		if agent_id==0:
+			self.epsilon = self.epsilon - self.eps_dec if self.epsilon > \
+				self.eps_min else self.eps_min
 		avail_acts = np.nonzero(avail_acts_oh)[0]
 		if np.random.random() < self.epsilon:
 			action = np.random.choice(avail_acts)
