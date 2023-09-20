@@ -17,6 +17,7 @@ flags.DEFINE_integer("targ_update", 500, "Number of steps before copying network
 flags.DEFINE_integer("buffer_size",200000,"Size of memory")
 flags.DEFINE_integer("train_period",1,"Number of steps to take in between training")
 
+
 def main(_):
 
     # hyperparams & fixed variables
@@ -94,16 +95,17 @@ def main(_):
                 agent.store_transition(obs_list[agent_id], actions[agent_id], reward, \
                 obs_list_[agent_id], done, avail_actions)
 
-                train_logs = agent.learn()
+                if timesteps%FLAGS.train_period==0:
+                    train_logs = agent.learn()
 
-                new_train_logs = {}
-                for key, value in train_logs.items():
-                    new_train_logs[f"agent_{agent_id}_{key}"] = value
+                    new_train_logs = {}
+                    for key, value in train_logs.items():
+                        new_train_logs[f"agent_{agent_id}_{key}"] = value
 
-                logs.update({
-                        f'agent_{agent_id}_epsilon' : agent.epsilon,
-                        **new_train_logs
-                    })
+                    logs.update({
+                            f'agent_{agent_id}_epsilon' : agent.epsilon,
+                            **new_train_logs
+                        })
 
                 if timesteps % target_update_period ==0:
                     agent.update_target_network()

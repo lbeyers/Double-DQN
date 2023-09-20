@@ -59,10 +59,12 @@ def main(_):
                 observation_, done, available_actions)
             observation = observation_
 
+            timesteps+=1
+
             if timesteps%FLAGS.train_period==0:
                 train_logs = agent.learn()
 
-            timesteps+=1
+            
             if timesteps>=max_timesteps:
                 tardy=True
 
