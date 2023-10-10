@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import numpy.linalg as la
 import copy
+from exploration_strats import *
 
 reward = np.array([11,-30,0,-30,7,6,0,0,5])
 
@@ -23,6 +24,8 @@ Q_storage = np.zeros((n_epi,n_actions))
 for i in range(n_epi):
     #each agent chooses an action
     A = epsilon_greedy(eps,Q,actions)
+    #A = boltzmann(i,Q,actions)
+    #A = contrived(i,Q,actions)
         
     #observe R
     r = reward[A]
